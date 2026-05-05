@@ -7,13 +7,22 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
+    }
   }, []);
 
   const login = (payload) => {
     const userData = payload?.data || payload;
+
     const authUser = {
-      id: userData.id,
+      id: userData.id || userData._id,
       name: userData.name,
       email: userData.email,
       role: userData.role || "user",
@@ -26,6 +35,12 @@ export const AuthProvider = ({ children }) => {
     setUser(authUser);
   };
 
+  const updateUser = (updates) => {
+    const updatedUser = { ...user, ...updates };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   const logout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -33,7 +48,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
