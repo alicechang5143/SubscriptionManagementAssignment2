@@ -235,7 +235,8 @@ const AdminDashboard = () => {
                   name="price"
                   type="number"
                   min="0"
-                  placeholder="29"
+                  step="0.01"
+                  placeholder="16.99"
                   value={form.price}
                   onChange={handleChange}
                   className="input-field"
