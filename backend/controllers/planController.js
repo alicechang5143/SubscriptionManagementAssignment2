@@ -1,5 +1,6 @@
 const PlanService = require('../services/PlanService');
 const ApiResponseFactory = require('../factories/ApiResponseFactory');
+const SubscriptionFactory = require('../factories/SubscriptionFactory');
 
 const planService = new PlanService();
 
@@ -38,4 +39,19 @@ exports.deletePlan = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+exports.getPlanTypes = (req, res) => {
+  const types = SubscriptionFactory.getAvailableTypes().map((type) => {
+    const plan = SubscriptionFactory.createPlan(type);
+    return {
+      type: plan.type,
+      displayName: plan.displayName,
+      maxSubscriptions: plan.maxSubscriptions,
+      supportLevel: plan.supportLevel,
+      permissions: plan.getPermissions(),
+      summary: plan.getSummary(),
+    };
+  });
+  return ApiResponseFactory.success(res, 200, 'Plan types fetched', types);
 };
