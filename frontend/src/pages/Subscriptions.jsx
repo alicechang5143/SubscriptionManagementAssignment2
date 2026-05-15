@@ -21,10 +21,11 @@ const Subscriptions = () => {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
 
-  const fetchPlans = async () => {
-    const response = await axiosInstance.get("/api/plans");
+  const fetchDashboard = async () => {
+    const response = await axiosInstance.get("/api/dashboard");
     const data = unwrap(response);
-    setPlans(Array.isArray(data) ? data : []);
+    setPlans(Array.isArray(data.availablePlans) ? data.availablePlans : []);
+    setSubscriptions(Array.isArray(data.subscriptions) ? data.subscriptions : []);
   };
 
   const fetchSubscriptions = async () => {
@@ -36,7 +37,7 @@ const Subscriptions = () => {
   const loadPage = useCallback(async () => {
     try {
       setLoading(true);
-      await Promise.all([fetchPlans(), fetchSubscriptions()]);
+      await fetchDashboard();
     } catch (error) {
       alert(
         error.response?.data?.message || "Failed to load subscription data.",
