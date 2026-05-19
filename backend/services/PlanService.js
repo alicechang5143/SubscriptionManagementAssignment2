@@ -1,6 +1,7 @@
 const PlanRepository = require('../repositories/PlanRepository');
 const AppError = require('../utils/AppError');
 const { PricingStrategyFactory } = require('../strategies/PricingStrategy');
+const SubscriptionFactory = require('../factories/SubscriptionFactory');
 
 class PlanService {
   constructor(planRepository = new PlanRepository()) {
@@ -16,12 +17,26 @@ class PlanService {
     const strategy = PricingStrategyFactory.getStrategy(duration);
     const calculatedPrice = strategy.calculate(price);
 
+    // Use the factory to get default features when the name matches a known type
+    let resolvedFeatures = Array.isArray(features) ? features : String(features).split(',').map((f) => f.trim()).filter(Boolean);
+    if (resolvedFeatures.length === 0) {
+      try {
+        const planObject = SubscriptionFactory.createPlan(name);
+        const perms = planObject.getPermissions();
+        resolvedFeatures = Object.entries(perms)
+          .filter(([, enabled]) => enabled)
+          .map(([key]) => key.replace(/([A-Z])/g, ' $1').trim());
+      } catch {
+        // name is not a known factory type — leave features empty
+      }
+    }
+
     return this.planRepository.create({
       name,
       price: Number(price),
       calculatedPrice,
       duration,
-      features: Array.isArray(features) ? features : String(features).split(',').map((f) => f.trim()).filter(Boolean),
+      features: resolvedFeatures,
       isActive: data.isActive !== false,
     });
   }

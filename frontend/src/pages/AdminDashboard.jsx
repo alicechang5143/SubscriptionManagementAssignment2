@@ -19,11 +19,11 @@ const AdminDashboard = () => {
   const [saving, setSaving] = useState(false);
 
   const activePlans = useMemo(
-    () => plans.filter((plan) => plan.isActive !== false).length,
+    () => plans.filter((plan) => plan.isActive !== false),
     [plans],
   );
   const inactivePlans = useMemo(
-    () => plans.filter((plan) => plan.isActive === false).length,
+    () => plans.filter((plan) => plan.isActive === false),
     [plans],
   );
 
@@ -172,7 +172,7 @@ const AdminDashboard = () => {
 
             <div className="metric-card">
               <p className="text-3xl font-black text-slate-950">
-                {activePlans}
+                {activePlans.length}
               </p>
               <p className="text-sm font-bold text-slate-500 mt-1">
                 Active plans
@@ -235,7 +235,8 @@ const AdminDashboard = () => {
                   name="price"
                   type="number"
                   min="0"
-                  placeholder="29"
+                  step="0.01"
+                  placeholder="16.99"
                   value={form.price}
                   onChange={handleChange}
                   className="input-field"
@@ -328,7 +329,7 @@ const AdminDashboard = () => {
               All Subscription Plans
             </h2>
             <p className="text-slate-500 mt-1">
-              {activePlans} active, {inactivePlans} inactive.
+              {activePlans.length} active, {inactivePlans.length} inactive.
             </p>
           </div>
 
@@ -354,70 +355,127 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {plans.map((plan) => (
-            <article
-              key={plan._id}
-              className="soft-card hover-card rounded-[2rem] p-6 space-y-5"
-            >
-              <div className="flex justify-between gap-4 items-start">
-                <div>
-                  <h3 className="text-xl font-black text-slate-950">
-                    {plan.name}
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">
-                    ${plan.price} / {plan.duration}
-                  </p>
-                </div>
-
-                <span
-                  className={
-                    plan.isActive === false
-                      ? "badge badge-muted"
-                      : "badge badge-active"
-                  }
+        {!loading && activePlans.length > 0 && (
+          <>
+            <h3 className="text-lg font-black text-slate-700 mb-4">
+              Active Plans
+            </h3>
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {activePlans.map((plan) => (
+                <article
+                  key={plan._id}
+                  className="soft-card hover-card rounded-[2rem] p-6 space-y-5"
                 >
-                  {plan.isActive === false ? "Inactive" : "Active"}
-                </span>
-              </div>
+                  <div className="flex justify-between gap-4 items-start">
+                    <div>
+                      <h3 className="text-xl font-black text-slate-950">
+                        {plan.name}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        ${plan.price} / {plan.duration}
+                      </p>
+                    </div>
+                    <span className="badge badge-active">Active</span>
+                  </div>
 
-              <div className="flex flex-wrap gap-2 min-h-[2rem]">
-                {Array.isArray(plan.features) && plan.features.length > 0 ? (
-                  plan.features.map((feature, index) => (
-                    <span key={index} className="badge badge-blue">
-                      {feature}
-                    </span>
-                  ))
-                ) : (
-                  <span className="badge badge-muted">No features listed</span>
-                )}
-              </div>
+                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
+                    {Array.isArray(plan.features) && plan.features.length > 0 ? (
+                      plan.features.map((feature, index) => (
+                        <span key={index} className="badge badge-blue">
+                          {feature}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="badge badge-muted">No features listed</span>
+                    )}
+                  </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => startEdit(plan)}
-                  className="secondary-button px-3 py-2 text-sm"
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => startEdit(plan)}
+                      className="secondary-button px-3 py-2 text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => togglePlanStatus(plan)}
+                      className="warning-button px-3 py-2 text-sm"
+                    >
+                      Disable
+                    </button>
+                    <button
+                      onClick={() => handleDelete(plan._id)}
+                      className="danger-button px-3 py-2 text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+
+        {!loading && inactivePlans.length > 0 && (
+          <>
+            <h3 className="text-lg font-black text-slate-500 mt-10 mb-4">
+              Inactive Plans
+            </h3>
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {inactivePlans.map((plan) => (
+                <article
+                  key={plan._id}
+                  className="soft-card hover-card rounded-[2rem] p-6 space-y-5 opacity-60"
                 >
-                  Edit
-                </button>
+                  <div className="flex justify-between gap-4 items-start">
+                    <div>
+                      <h3 className="text-xl font-black text-slate-950">
+                        {plan.name}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        ${plan.price} / {plan.duration}
+                      </p>
+                    </div>
+                    <span className="badge badge-muted">Inactive</span>
+                  </div>
 
-                <button
-                  onClick={() => togglePlanStatus(plan)}
-                  className="warning-button px-3 py-2 text-sm"
-                >
-                  {plan.isActive === false ? "Enable" : "Disable"}
-                </button>
+                  <div className="flex flex-wrap gap-2 min-h-[2rem]">
+                    {Array.isArray(plan.features) && plan.features.length > 0 ? (
+                      plan.features.map((feature, index) => (
+                        <span key={index} className="badge badge-blue">
+                          {feature}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="badge badge-muted">No features listed</span>
+                    )}
+                  </div>
 
-                <button
-                  onClick={() => handleDelete(plan._id)}
-                  className="danger-button px-3 py-2 text-sm"
-                >
-                  Delete
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => startEdit(plan)}
+                      className="secondary-button px-3 py-2 text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => togglePlanStatus(plan)}
+                      className="warning-button px-3 py-2 text-sm"
+                    >
+                      Enable
+                    </button>
+                    <button
+                      onClick={() => handleDelete(plan._id)}
+                      className="danger-button px-3 py-2 text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
       </section>
     </div>
   );

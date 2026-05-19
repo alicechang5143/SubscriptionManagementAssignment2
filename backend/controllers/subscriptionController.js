@@ -1,5 +1,6 @@
 const SubscriptionService = require('../services/SubscriptionService');
 const ApiResponseFactory = require('../factories/ApiResponseFactory');
+const facade = require('../facades/SubscriptionFacade');
 
 const subscriptionService = new SubscriptionService();
 
@@ -32,8 +33,8 @@ exports.updateSubscription = async (req, res, next) => {
 
 exports.cancelSubscription = async (req, res, next) => {
   try {
-    const subscription = await subscriptionService.cancelSubscription(req.user._id, req.params.id);
-    return ApiResponseFactory.success(res, 200, 'Subscription cancelled', subscription);
+    const result = await facade.cancelAndRefreshProfile(req.user._id, req.params.id);
+    return ApiResponseFactory.success(res, 200, 'Subscription cancelled', result);
   } catch (error) {
     next(error);
   }

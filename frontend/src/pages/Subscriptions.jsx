@@ -42,10 +42,11 @@ const Subscriptions = () => {
   const [actionLoading, setActionLoading] = useState("");
   const [renewalAlerts, setRenewalAlerts] = useState([]);
 
-  const fetchPlans = async () => {
-    const response = await axiosInstance.get("/api/plans");
+  const fetchDashboard = async () => {
+    const response = await axiosInstance.get("/api/dashboard");
     const data = unwrap(response);
-    setPlans(Array.isArray(data) ? data : []);
+    setPlans(Array.isArray(data.availablePlans) ? data.availablePlans : []);
+    setSubscriptions(Array.isArray(data.subscriptions) ? data.subscriptions : []);
   };
 
   const fetchSubscriptions = async () => {
